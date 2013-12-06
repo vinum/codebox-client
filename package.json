@@ -1,0 +1,20 @@
+{
+  "name": "codeboxes-client",
+  "version": "1.0.0",
+  "description": "The command line client for CodeBoxes",
+  "main": "client.js",
+  "dependencies": {
+    "commander": "~2.1.0",
+    "co-prompt": "~1.0.0",
+    "q": "~0.9.7"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "mocha"
+  },
+  "keywords": [
+    "codebox"
+  ],
+  "author": "aaron524",
+  "license": "MIT"
+}
