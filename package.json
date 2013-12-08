@@ -3,6 +3,7 @@
   "version": "1.2.0",
   "description": "The command line client for CodeBoxes",
   "main": "client.js",
+  "bin" : {"codebox":"client.js"},
   "dependencies": {
     "commander": "~2.1.0",
     "co-prompt": "~1.0.0",
