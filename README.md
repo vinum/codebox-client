@@ -22,6 +22,6 @@ Note if the current container does not exist then CodeBoxes cannot create them, 
 
 # Installing
 
-Install via npm: `npm install codeboxes-client`
+Install via npm: `npm install -g codeboxes-client`
 
 You can then run `codebox` from the terminal.
