@@ -58,8 +58,17 @@ function downloadFile(url,path)
 
 	var file = fs.createWriteStream(path);
 	var request = https.get(url, function(response) {
-		response.pipe(file);
-		deferred.resolve(response);
+		if(response.statusCode == 200)
+		{
+			response.pipe(file);
+			deferred.resolve(response);
+		}
+		else
+		{
+			console.log("	== ERROR: Could not fetch file [" + url + "] ");
+			console.log("	== Does this CodeBox not exist? Or is GitHub down? ");
+			process.abort();
+		}
 	});
 
 	return deferred.promise;
