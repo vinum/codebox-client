@@ -77,7 +77,7 @@ function downloadFile(url,path)
 
 // command line client definition
 program
-  .version('1.0.0')
+  .version('1.2.5')
   .option('-d, --database [type]', 'Add the specified type of database [type]','')
   .option('-l, --lang [type]', 'Add the specified type of platform [type]','')
   .parse(process.argv);
