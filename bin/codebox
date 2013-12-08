@@ -137,7 +137,7 @@ else
 				// download the provision script
 				console.log("	Done!\n");
 				console.log("	== Downloading Provison Script...");
-				return downloadFile(PROVISION_URL, cwd + "/provison.sh");
+				return downloadFile(PROVISION_URL, cwd + "/provision.sh");
 			}).then(function(resp){
 				// all done!
 				console.log("	Done!\n");
