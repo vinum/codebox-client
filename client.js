@@ -105,6 +105,11 @@ else
 		else
 		{
 
+			var usingDb = true;
+
+			if(program.database === 'none')
+				usingDb = false;
+
 			// start to download needed files
 			console.log("	== Downloading Docker Files...");
 
@@ -118,19 +123,23 @@ else
 			// make lang directory
 			makeDirectory(cwd + '/containers/lang-'+program.lang).then(function(e){
 				// make db directory
-				return makeDirectory(cwd + '/containers/db-'+program.database);
+				if(usingDb)
+					return makeDirectory(cwd + '/containers/db-'+program.database);
 			}).then(function(e){
 				// download lang Dockerfile
 				return downloadFile(REPO_LANG_URL+program.lang+'/Dockerfile', cwd + '/containers/lang-'+program.lang+'/Dockerfile');
 			}).then(function(resp){
 				// download db Dockerfile
-				return downloadFile(REPO_DB_URL+program.database+'/Dockerfile', cwd + '/containers/db-'+program.database+'/Dockerfile');
+				if(usingDb)
+					return downloadFile(REPO_DB_URL+program.database+'/Dockerfile', cwd + '/containers/db-'+program.database+'/Dockerfile');
 			}).then(function(resp){
 				// download the db run.sh
-				return downloadFile(REPO_DB_URL+program.database+'/run.sh', cwd + '/containers/db-'+program.database+'/run.sh');
+				if(usingDb)
+					return downloadFile(REPO_DB_URL+program.database+'/run.sh', cwd + '/containers/db-'+program.database+'/run.sh');
 			}).then(function(resp){
 				// download the db start.sh
-				return downloadFile(REPO_DB_URL+program.database+'/start.sh', cwd + '/containers/db-'+program.database+'/start.sh');				
+				if(usingDb)
+					return downloadFile(REPO_DB_URL+program.database+'/start.sh', cwd + '/containers/db-'+program.database+'/start.sh');				
 			}).then(function(resp){
 				// download the lang run.sh
 				return downloadFile(REPO_LANG_URL+program.lang+'/run.sh', cwd + '/containers/lang-'+program.lang+'/run.sh');
