@@ -19,13 +19,11 @@ var async = require('async');
 // contants
 var REPO_URL = "https://raw.github.com/CodeBoxes/box-repo/master/";
 var VAGRANT_CONFIG_URL = "https://gist.github.com/aaron524/7830108/raw/";
-var PROVISION_URL = "https://gist.github.com/aaron524/7830204/raw/";
+var PROVISION_URL = "https://gist.github.com/aaron524/7830204/raw/";`
 
 
 function getBox(boxTitle,cb)
 {
-
-
 	_makeDirectory(cwd + '/containers/' + boxTitle).then(function(err){
 		// download the Dockerfile
 		if(!err)
@@ -65,18 +63,18 @@ function getBox(boxTitle,cb)
 **/
 function _makeDirectory(path)
 {
-        var deferred = q.defer();
+	var deferred = q.defer();
 
-        fs.mkdir(path,function(e){
-                if(!e || (e && e.code === 'EEXIST')){
-                        deferred.resolve(null);
-                } else {
-                        //debug
-                        deferred.resolve(e);
-                }
-        });
+	fs.mkdir(path,function(e){
+		if(!e || (e && e.code === 'EEXIST')){
+				deferred.resolve(null);
+		} else {
+				//debug
+				deferred.resolve(e);
+		}
+	});
 
-        return deferred.promise;
+	return deferred.promise;
 };
 
 /**
@@ -107,33 +105,33 @@ function makeDirectory(path,cb)
 function downloadFile(url,path)
 {
 
-        var deferred = q.defer();
+	var deferred = q.defer();
 
-        var file = fs.createWriteStream(path);
-        var request = https.get(url, function(response) {
-                if(response.statusCode == 200)
-                {
-                        response.pipe(file);
-                        deferred.resolve(response);
-                }
-                else
-                {
-                        console.log("        == ERROR: Could not fetch file [" + url + "] ");
-                        console.log("        == Does this CodeBox not exist? Or is GitHub down? ");
-                        process.abort();
-                }
-        });
+	var file = fs.createWriteStream(path);
+	var request = https.get(url, function(response) {
+		if(response.statusCode == 200)
+		{
+			response.pipe(file);
+			deferred.resolve(response);
+		}
+		else
+		{
+			console.log("        == ERROR: Could not fetch file [" + url + "] ");
+			console.log("        == Does this CodeBox not exist? Or is GitHub down? ");
+			process.abort();
+		}
+	});
 
-        return deferred.promise;
+	return deferred.promise;
 
 };
 
 
 // command line client definition
 program
-  .version('1.3.0')
-  .option('-b, --boxes [type]', 'Add the specified types of boxes to be downloaded [-b php,mysql]','')
-  .parse(process.argv);
+	.version('1.3.0')
+	.option('-b, --boxes [type]', 'Add the specified types of boxes to be downloaded [-b php,mysql]','')
+	.parse(process.argv);
 
 // if the command got the correct  arguments
 if(!program.boxes || program.boxes == '')
@@ -158,16 +156,14 @@ else
 		}
 		else
 		{
-
 			async.each(boxes, getBox, function(err){
-					// download the provison script and Vagrantfile
-					downloadFile(PROVISION_URL,cwd+'/provision.sh').then(function(resp){
-						return downloadFile(VAGRANT_CONFIG_URL,cwd+'/Vagrantfile');
-					}).then(function(resp){
-						console.log('	== Downloaded all files! You may now run "vagrant up" to start provisioning!');
-					});
+				// download the provison script and Vagrantfile
+				downloadFile(PROVISION_URL,cwd+'/provision.sh').then(function(resp){
+					return downloadFile(VAGRANT_CONFIG_URL,cwd+'/Vagrantfile');
+				}).then(function(resp){
+					console.log('	== Downloaded all files! You may now run "vagrant up" to start provisioning!');
+				});
 			});
-
 		}
 	});
 };
