@@ -14,31 +14,78 @@ var program = require('commander');
 var https = require('https');
 var fs = require('fs');
 var q = require('q');
+var async = require('async');
 
 // contants
-var REPO_DB_URL = "https://raw.github.com/CodeBoxes/codeboxes-dbs/master/";
-var REPO_LANG_URL = "https://raw.github.com/CodeBoxes/codeboxes-langs/master/";
+var REPO_URL = "https://raw.github.com/CodeBoxes/box-repo/master/";
 var VAGRANT_CONFIG_URL = "https://gist.github.com/aaron524/7830108/raw/";
 var PROVISION_URL = "https://gist.github.com/aaron524/7830204/raw/";
 
-// useful functions
-function makeDirectory(path)
-{
-	var deferred = q.defer();
 
-	fs.mkdir(path,function(e){
-		if(!e || (e && e.code === 'EEXIST')){
-			deferred.resolve(null);
-		} else {
-			//debug
-			deferred.resolve(e);
+function getBox(boxTitle,cb)
+{
+
+
+	_makeDirectory(cwd + '/containers/' + boxTitle).then(function(err){
+		// download the Dockerfile
+		if(!err)
+		{
+			// directory creation ok, start downloads
+			console.log('	== Fetching Dockerfile for [' + boxTitle + ']');
+			return downloadFile(REPO_URL + boxTitle +'/Dockerfile', cwd+'/containers/'+boxTitle+'/Dockerfile');
 		}
+		else
+		{
+			console.log("	== ERROR: could not make container directory!");
+			process.abort();
+		}
+	}).then(function(resp){
+		// download the start.sh script
+		console.log('	== Fetching start.sh for [' + boxTitle + ']');
+		return downloadFile(REPO_URL + boxTitle +'/start.sh', cwd+'/containers/' + boxTitle + '/start.sh');
+	}).then(function(resp){
+		// download run.sh
+		console.log('	== Fetching run.sh for [' + boxTitle + ']');
+		return downloadFile(REPO_URL + boxTitle +'/run.sh', cwd + '/containers/' + boxTitle + '/run.sh');
+	}).then(function(){
+		// download the README file
+		console.log('	== Fetching README.md for [' + boxTitle + ']');
+		return downloadFile(REPO_URL + boxTitle +'/README.md', cwd + '/containers/' + boxTitle + '/README.md');
+	}).then(function(resp){
+		console.log('\n\t ✓ Finished Fetching [' + boxTitle + ']\n');
+		cb(null);
 	});
 
-	return deferred.promise;
 };
 
-function _makeDirectory(path,cb)
+/**
+	_makeDirectory(path)
+	Make a directory with the given path
+	Uses promisses, will contain err is any error in creating directory
+**/
+function _makeDirectory(path)
+{
+        var deferred = q.defer();
+
+        fs.mkdir(path,function(e){
+                if(!e || (e && e.code === 'EEXIST')){
+                        deferred.resolve(null);
+                } else {
+                        //debug
+                        deferred.resolve(e);
+                }
+        });
+
+        return deferred.promise;
+};
+
+/**
+	makeDirectory(path,cb)
+	Make a directory with the given path
+	Uses callbacks
+	Will pass err to callback if any error in creating directory
+**/
+function makeDirectory(path,cb)
 {
 
 	fs.mkdir(path,function(e){
@@ -51,118 +98,76 @@ function _makeDirectory(path,cb)
 	});
 };
 
+/**
+	downloadFile(url, path)
+	Downloads file from 'url' and saves to given file 'path'
+	Uses promisses
+	Will contain the responce object and will kill process on fail
+**/
 function downloadFile(url,path)
 {
 
-	var deferred = q.defer();
+        var deferred = q.defer();
 
-	var file = fs.createWriteStream(path);
-	var request = https.get(url, function(response) {
-		if(response.statusCode == 200)
-		{
-			response.pipe(file);
-			deferred.resolve(response);
-		}
-		else
-		{
-			console.log("	== ERROR: Could not fetch file [" + url + "] ");
-			console.log("	== Does this CodeBox not exist? Or is GitHub down? ");
-			process.abort();
-		}
-	});
+        var file = fs.createWriteStream(path);
+        var request = https.get(url, function(response) {
+                if(response.statusCode == 200)
+                {
+                        response.pipe(file);
+                        deferred.resolve(response);
+                }
+                else
+                {
+                        console.log("        == ERROR: Could not fetch file [" + url + "] ");
+                        console.log("        == Does this CodeBox not exist? Or is GitHub down? ");
+                        process.abort();
+                }
+        });
 
-	return deferred.promise;
+        return deferred.promise;
 
 };
+
 
 // command line client definition
 program
   .version('1.3.0')
-  .option('-d, --database [type]', 'Add the specified type of database [type]','')
-  .option('-l, --lang [type]', 'Add the specified type of platform [type]','')
+  .option('-b, --boxes [type]', 'Add the specified types of boxes to be downloaded [-b php,mysql]','')
   .parse(process.argv);
 
 // if the command got the correct  arguments
-if(!program.database || !program.lang || program.lang == '' || program.database == '')
+if(!program.boxes || program.boxes == '')
 	// they did not provide all arguments
-	console.log("Please tell me what kind of box you want! (--help for more info)");
+	console.log("Please tell me what kind of boxes you want! (--help for more info)");
 else 
 {
-	console.log('	== Building a CodeBox with [' + program.lang + '] and [' + program.database + ']...');
+	console.log('	== Building a CodeBox...');
 
-	// let's build the box!
+	// let's fetch the boxes
+	var boxes = program.boxes.split(',');
 
 	// get the cwd
 	var cwd = process.cwd();
 
 	// make the containers diretory
-	_makeDirectory(cwd + '/containers',function(e){
+	makeDirectory(cwd + '/containers',function(e){
 		if(e)
 		{
-			console.log("	!! Woops");
-			console.log(e);
+			console.log('	== Woops!');
+			console.log('	== Error: ' + e);
 		}
 		else
 		{
 
-			var usingDb = true;
-
-			if(program.database === 'none')
-				usingDb = false;
-
-			// start to download needed files
-			console.log("	== Downloading Docker Files...");
-
-			// promise chain to download db and lang container files
-
-			/**
-			* VERY UGLY LOOKING PROMISE CHAIN
-			* THIS IS GOING TO BE REVISED. TRUST ME.
-			**/
-
-			// make lang directory
-			makeDirectory(cwd + '/containers/lang-'+program.lang).then(function(e){
-				// make db directory
-				if(usingDb)
-					return makeDirectory(cwd + '/containers/db-'+program.database);
-			}).then(function(e){
-				// download lang Dockerfile
-				return downloadFile(REPO_LANG_URL+program.lang+'/Dockerfile', cwd + '/containers/lang-'+program.lang+'/Dockerfile');
-			}).then(function(resp){
-				// download db Dockerfile
-				if(usingDb)
-					return downloadFile(REPO_DB_URL+program.database+'/Dockerfile', cwd + '/containers/db-'+program.database+'/Dockerfile');
-			}).then(function(resp){
-				// download the db run.sh
-				if(usingDb)
-					return downloadFile(REPO_DB_URL+program.database+'/run.sh', cwd + '/containers/db-'+program.database+'/run.sh');
-			}).then(function(resp){
-				// download the db start.sh
-				if(usingDb)
-					return downloadFile(REPO_DB_URL+program.database+'/start.sh', cwd + '/containers/db-'+program.database+'/start.sh');				
-			}).then(function(resp){
-				// download the lang run.sh
-				return downloadFile(REPO_LANG_URL+program.lang+'/run.sh', cwd + '/containers/lang-'+program.lang+'/run.sh');
-			}).then(function(resp){
-				// download the lang start.sh
-				return downloadFile(REPO_LANG_URL+program.lang+'/start.sh', cwd + '/containers/lang-'+program.lang+'/start.sh');				
-			}).then(function(resp){
-				// download vagrantfile
-				console.log("	== Finished Downloading Docker Files!\n");
-				console.log("	== Downloading Vagrant Config...");
-				return downloadFile(VAGRANT_CONFIG_URL, cwd + "/Vagrantfile");
-			}).then(function(resp){
-				// download the provision script
-				console.log("	Done!\n");
-				console.log("	== Downloading Provison Script...");
-				return downloadFile(PROVISION_URL, cwd + "/provision.sh");
-			}).then(function(resp){
-				// all done!
-				console.log("	Done!\n");
-				console.log("CodeBox is ready for use! run 'vagrant up' to start developing!");
+			async.each(boxes, getBox, function(err){
+					// download the provison script and Vagrantfile
+					downloadFile(PROVISION_URL,cwd+'/provision.sh').then(function(resp){
+						return downloadFile(VAGRANT_CONFIG_URL,cwd+'/Vagrantfile');
+					}).then(function(resp){
+						console.log('	== Downloaded all files! You may now run "vagrant up" to start provisioning!');
+					});
 			});
 
 		}
 	});
-
 };

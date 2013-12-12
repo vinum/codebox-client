@@ -7,18 +7,18 @@ This is the command line client to download CodeBoxes
 
   Options:
 
-    -h, --help             output usage information
-    -V, --version          output the version number
-    -d, --database [type]  Add the specified type of database [type]
-    -l, --lang [type]      Add the specified type of platform [type]
+    -h, --help          output usage information
+    -V, --version       output the version number
+    -b, --boxes [type]  Add the specified types of boxes to be downloaded [-b php,mysql]
+
 ```
 
 ### Example
 
-`codebox --database mysql --lang php` 
+`codebox -b mysql,php` 
 
 This command will download the files to create a CodeBox with PHP and Apache with a MySQL database.
-Note if the current container does not exist then CodeBoxes cannot create them, if you have ideas for a container, please visit [codebox-langs](https://github.com/codeboxes/codeboxes-langs) and [codebox-dbs](https://github.com/codeboxes/codeboxes-dbs). Pull requests are always welcome!
+Note if the current container does not exist then CodeBoxes cannot create them, if you have ideas for a container, please visit [codebox-langs](https://github.com/codeboxes/box-repo). Pull requests are always welcome!
 
 # Installing
 
