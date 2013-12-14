@@ -19,7 +19,7 @@ var async = require('async');
 // contants
 var REPO_URL = "https://raw.github.com/CodeBoxes/box-repo/master/";
 var VAGRANT_CONFIG_URL = "https://gist.github.com/aaron524/7830108/raw/";
-var PROVISION_URL = "https://gist.github.com/aaron524/7830204/raw/";`
+var PROVISION_URL = "https://gist.github.com/aaron524/7830204/raw/";
 
 
 function getBox(boxTitle,cb)
