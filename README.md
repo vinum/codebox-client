@@ -15,7 +15,7 @@ This is the command line client to download CodeBoxes
 
 ### Example
 
-`codebox -b mysql,php` 
+`codebox -b nodejs,mongo` 
 
 This command will download the files to create a CodeBox with PHP and Apache with a MySQL database.
 Note if the current container does not exist then CodeBoxes cannot create them, if you have ideas for a container, please visit [the box repo](https://github.com/codeboxes/box-repo). Pull requests are always welcome!
